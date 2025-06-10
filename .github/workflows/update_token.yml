@@ -1,0 +1,27 @@
+name: Auto Generate Daily MD5 Token
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Setiap hari jam 00:00 UTC
+
+jobs:
+  generate-md5-token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Generate MD5 Token
+        run: |
+          RAW=$(date +%s%N)$RANDOM
+          TOKEN=$(echo -n "$RAW" | md5sum | cut -d ' ' -f1)
+          echo "{\"token\": \"$TOKEN\"}" > aksestoken.json
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add aksestoken.json
+          git commit -m "Update MD5 token"
+          git push
+          
